@@ -27,7 +27,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: "${GIT_BRANCH}",
-                    url: 'https://github.com/kim-yeonsu/todang-app.git'
+                    url: 'https://github.com/TODANG-ORGANIZATION/todang-backend.git'
             }
         }
 
