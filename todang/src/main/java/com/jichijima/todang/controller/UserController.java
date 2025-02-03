@@ -2,6 +2,7 @@ package com.jichijima.todang.controller;
 
 import com.jichijima.todang.model.dto.user.UserLoginRequest;
 import com.jichijima.todang.model.dto.user.UserSignupRequest;
+import com.jichijima.todang.model.dto.user.UserUpdateRequest;
 import com.jichijima.todang.model.entity.User;
 import com.jichijima.todang.repository.UserRepository;
 import com.jichijima.todang.service.UserService;
@@ -143,5 +144,24 @@ public class UserController {
 
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
+    }
+
+    /**
+     * 회원 정보 수정 API
+     */
+    @PutMapping("/{user_id}")
+    public ResponseEntity<User> updateUser(
+            @PathVariable("user_id") Long userId,
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody UserUpdateRequest request) {
+
+        // 토큰에서 이메일 추출
+        String token = authHeader.replace("Bearer ", "");
+        String email = jwtUtil.extractEmail(token);
+
+        // 본인 확인 후 업데이트 수행
+        User updatedUser = userService.updateUser(userId, email, request);
+
+        return ResponseEntity.ok(updatedUser);
     }
 }

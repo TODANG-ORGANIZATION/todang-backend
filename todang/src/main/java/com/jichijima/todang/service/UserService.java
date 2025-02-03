@@ -1,5 +1,6 @@
 package com.jichijima.todang.service;
 
+import com.jichijima.todang.model.dto.user.UserUpdateRequest;
 import com.jichijima.todang.model.entity.User;
 import com.jichijima.todang.repository.UserRepository;
 import com.jichijima.todang.util.JwtUtil;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor // 🎯 의존성 자동 주입
@@ -113,5 +115,44 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+    }
+
+    /**
+     * 회원 정보 수정 서비스 로직
+     */
+    public User updateUser(Long userId, String email, UserUpdateRequest request) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."));
+
+        // 본인 확인 (토큰에서 가져온 이메일과 비교)
+        if (!user.getEmail().equals(email)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+        }
+
+        // 닉네임 중복 체크 (변경 시에만 실행)
+        if (request.getNickName() != null && !user.getNickname().equals(request.getNickName())) {
+            if (userRepository.existsByNickname(request.getNickName())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다.");
+            }
+        }
+
+        // 이메일 중복 체크 (변경 시에만 실행)
+        if (request.getEmail() != null && !user.getEmail().equals(request.getEmail())) {
+            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+            if (existingUser.isPresent() && !existingUser.get().getId().equals(user.getId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다.");
+            }
+        }
+
+        // 값 업데이트 (null이 아닌 경우에만)
+        if (request.getProfilePhoto() != null) user.setUserPhoto(request.getProfilePhoto());
+        if (request.getName() != null) user.setName(request.getName());
+        if (request.getNickName() != null) user.setNickname(request.getNickName());
+        if (request.getTel() != null) user.setTel(request.getTel());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+
+        // 업데이트 후 저장
+        return userRepository.save(user);
     }
 }
