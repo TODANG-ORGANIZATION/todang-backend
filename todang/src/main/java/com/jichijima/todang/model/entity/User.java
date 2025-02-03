@@ -38,6 +38,7 @@ public class User {
     @Column(nullable = false, columnDefinition = "TINYINT")
     private Role role;
 
+    @Column(length = 500) // 리프레시 토큰 저장
     private String refreshToken; // JWT 리프레시 토큰 저장
 
     public enum Role {

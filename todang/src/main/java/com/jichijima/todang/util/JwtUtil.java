@@ -12,22 +12,35 @@ import java.util.Date;
 public class JwtUtil {
 
     private final Key key;
-    private final long validityInMilliseconds;
+    private final long accessTokenValidity;
+    private final long refreshTokenValidity;
 
     public JwtUtil(
             @Value("${jwt.secretKey}") String secretKey,
-            @Value("${jwt.validate-time}") long validityInMilliseconds
+            @Value("${jwt.access-token-expiry}") long accessTokenValidity,
+            @Value("${jwt.refresh-token-expiry}") long refreshTokenValidity
     ) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-        this.validityInMilliseconds = validityInMilliseconds;
+        this.accessTokenValidity = accessTokenValidity;
+        this.refreshTokenValidity = refreshTokenValidity;
     }
 
-    // ✅ JWT 토큰 생성
+    // ✅ 액세스 토큰 생성
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + validityInMilliseconds))
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidity))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    // ✅ 리프레시 토큰 생성 (새로 추가된 부분)
+    public String generateRefreshToken(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidity))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -49,7 +62,6 @@ public class JwtUtil {
             return null;
         }
     }
-
 
     // ✅ JWT 토큰 유효성 검사
     public boolean validateToken(String token) {

@@ -78,6 +78,14 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
-        return jwtUtil.generateToken(email);    // JWT 토큰 발급
+        //액세스 토큰과 리프레시 토큰 생성
+        String accessToken = jwtUtil.generateToken(email);
+        String refreshToken = jwtUtil.generateRefreshToken(email);
+
+        //리프레시 토큰 DB저장
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        return accessToken; // 액세스 토큰만 반환 (리프레시 토큰은 별도 API로 관리)
     }
 }
