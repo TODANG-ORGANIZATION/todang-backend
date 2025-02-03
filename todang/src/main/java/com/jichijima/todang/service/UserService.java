@@ -2,11 +2,14 @@ package com.jichijima.todang.service;
 
 import com.jichijima.todang.model.entity.User;
 import com.jichijima.todang.repository.UserRepository;
+import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor // 🎯 의존성 자동 주입
@@ -14,6 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     /**
      * 회원가입 서비스 로직
@@ -56,5 +60,24 @@ public class UserService {
      */
     public boolean isEmailTaken(String email) {
         return userRepository.findByEmail(email).isPresent();
+    }
+
+    /**
+     * 로그인 처리 로직
+     */
+    public String login(String email, String password) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일이 존재하지 않습니다.");
+        }
+
+        User user = userOptional.get();
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
+        }
+
+        return jwtUtil.generateToken(email);    //JWT 토큰 발급
     }
 }
