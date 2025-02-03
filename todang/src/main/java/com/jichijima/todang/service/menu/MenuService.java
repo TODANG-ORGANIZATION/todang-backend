@@ -18,9 +18,17 @@ public class MenuService {
         return menuRepository.findAll();
     }
 
+    public List<Menu> getMenus(Long restaurantId){
+        // 레스토랑 아이디가 존재하면 해당 레스토랑 아이디와 일치하는 메뉴 가져오기
+        if (restaurantId != null)
+            return menuRepository.findByRestaurantId(restaurantId);
+        else
+            return menuRepository.findAll();
+    }
+
     // 특정 메뉴 조회 (ID 기반)
-    public Optional<Menu> getMenuById(Long id){
-        return menuRepository.findById(id);
+    public Optional<Menu> getMenuById(Long menuId){
+        return menuRepository.findById(menuId);
     }
 
     // 새로운 메뉴 추가
@@ -29,20 +37,58 @@ public class MenuService {
     }
 
     // 메뉴 수정
-    public Menu updateMenu(Long id, Menu updateMenu){
-        return menuRepository.findById(id)
+    public boolean updateMenu(Long menuId, Menu updateMenu) {
+        return menuRepository.findById(menuId)
                 .map(menu -> {
                     menu.setName(updateMenu.getName());
                     menu.setPrice(updateMenu.getPrice());
                     menu.setMenuPhoto(updateMenu.getMenuPhoto());
                     menu.setSoldout(updateMenu.getSoldout());
-                    return menuRepository.save(menu);
+                    menuRepository.save(menu);
+                    return true;
                 })
-                .orElseThrow(() -> new EntityNotFoundException("Menu not found with id " + id));
+                .orElse(false);
+    }
+
+    // 메뉴 정보 부분 수정 (PATCH)
+    public boolean patchMenu(Long menuId, Menu menu){
+        return menuRepository.findById(menuId)
+                .map(existingMenu -> {
+                    boolean isUpdated = false;
+                    if (menu.getName() != null) {
+                        existingMenu.setName(menu.getName());
+                        isUpdated = true;
+                    }
+                    if (menu.getPrice() != null){
+                        existingMenu.setPrice(menu.getPrice());
+                        isUpdated = true;
+                    }
+                    if (menu.getMenuPhoto() != null){
+                        existingMenu.setMenuPhoto(menu.getMenuPhoto());
+                        isUpdated = true;
+                    }
+                    if (menu.getSoldout() != null){
+                       existingMenu.setSoldout(menu.getSoldout());
+                       isUpdated = true;
+                    }
+
+                    if (isUpdated){
+                        menuRepository.save(existingMenu);
+                        return true;
+                    }else{
+                        return false;
+                    }
+                })
+                .orElse(false); // 메뉴를 찾지 못한 경우 false 반환
     }
 
     // 메뉴 삭제
-    public void deleteMenu(Long id){
-        menuRepository.deleteById(id);
+    public boolean deleteMenu(Long menuId){
+        Optional<Menu> menu = menuRepository.findById(menuId);
+        if (menu.isPresent()){
+            menuRepository.delete(menu.get());
+            return true;
+        }else
+            return false;
     }
 }
