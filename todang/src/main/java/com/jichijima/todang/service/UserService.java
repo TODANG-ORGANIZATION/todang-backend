@@ -78,6 +78,6 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
-        return jwtUtil.generateToken(email);    //JWT 토큰 발급
+        return jwtUtil.generateToken(email);    // JWT 토큰 발급
     }
 }
