@@ -1,5 +1,8 @@
 package com.jichijima.todang.controller;
 
+import com.jichijima.todang.model.dto.user.UserLoginRequest;
+import com.jichijima.todang.model.dto.user.UserLoginResponse;
+import com.jichijima.todang.model.dto.user.UserSignupRequest;
 import com.jichijima.todang.model.entity.User;
 import com.jichijima.todang.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +22,15 @@ public class UserController {
      * 회원가입 API
      */
     @PostMapping("/signup")
-    public ResponseEntity<User> signup(@RequestBody Map<String, String> request) {
+    public ResponseEntity<User> signup(@RequestBody UserSignupRequest request) {
         System.out.println("🚀 회원가입 요청 수신됨: " + request); // 요청 로그 추가
         User user = userService.signup(
-                request.get("name"),
-                request.get("nickname"),
-                request.get("email"),
-                request.get("password"),
-                request.get("tel"),
-                User.Role.valueOf(request.get("role").toUpperCase()) // CUSTOMER 또는 OWNER
+                request.getName(),
+                request.getNickname(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getTel(),
+                request.getRoleEnum() // ✅ ENUM 변환된 값 전달
         );
         return ResponseEntity.ok(user);
     }
@@ -54,11 +57,8 @@ public class UserController {
      * 로그인 API
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String password = request.get("password");
-
-        String token = userService.login(email, password);
-        return ResponseEntity.ok(Map.of("token", token));
+    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
+        String token = userService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(new UserLoginResponse(token));
     }
 }
