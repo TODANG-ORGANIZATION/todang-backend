@@ -40,8 +40,11 @@ public class MenuController {
     // 새로운 메뉴 추가
     @PostMapping("")
     public ResponseEntity<?> insertMenu(@RequestBody MenuRequest menuRequest){
-        Menu createdMenu = menuService.createMenu(menuRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdMenu);
+        boolean isCreated = menuService.createMenu(menuRequest);
+        if (isCreated)
+            return ResponseEntity.ok().build();
+        else
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("추가에 실패했습니다.");
     }
 
     // 메뉴 정보 수정

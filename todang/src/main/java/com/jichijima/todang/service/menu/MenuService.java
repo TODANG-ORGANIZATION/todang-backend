@@ -33,14 +33,19 @@ public class MenuService {
     }
 
     // 새로운 메뉴 추가
-    public Menu createMenu(MenuRequest menuRequest){
+    public boolean createMenu(MenuRequest menuRequest) {
         Menu menu = new Menu();
+
+        // 요청 값이 null이 아닌 경우에만 필드 설정
         if (menuRequest.getRestaurantId() != null) menu.setRestaurantId(menuRequest.getRestaurantId());
         if (menuRequest.getMenuCategoryId() != null) menu.setMenuCategoryId(menuRequest.getMenuCategoryId());
         if (menuRequest.getName() != null) menu.setName(menuRequest.getName());
         if (menuRequest.getPrice() != null) menu.setPrice(menuRequest.getPrice());
         if (menuRequest.getMenuPhoto() != null) menu.setMenuPhoto(menuRequest.getMenuPhoto());
-        return menuRepository.save(menu);
+
+        // 메뉴를 저장하고 결과 확인
+        Menu savedMenu = menuRepository.save(menu);
+        return savedMenu != null;  // 메뉴가 저장되었으면 true, 아니면 false
     }
 
     // 메뉴 수정
