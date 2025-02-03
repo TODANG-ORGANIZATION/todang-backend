@@ -98,4 +98,20 @@ public class UserService {
         user.setRefreshToken(null);
         userRepository.save(user);
     }
+
+    /**
+     * 사용자 정보 조회(유저 아이디)
+     */
+    public User getUserById(long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."));
+    }
+
+    /**
+     * 사용자 정보 조회 (이메일 기준)
+     */
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+    }
 }

@@ -9,6 +9,8 @@ import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -119,4 +121,27 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "로그아웃 되었습니다."));
     }
 
+    /**
+     * 사용자 정보 조회 API(본인만 가능)
+     */
+    @GetMapping("/{user_id}")
+    public ResponseEntity<User> getUserInfo(
+            @PathVariable("user_id") long userId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        // SecurityContext에서 현재 로그인한 사용자의 이메일 가져오기
+        String authenticatedEmail = userDetails.getUsername();
+
+        // 이메일로 사용자 ID 조회
+        User authenticatedUser = userService.getUserByEmail(authenticatedEmail);
+        long authenticatedUserId = authenticatedUser.getId();
+
+        //본인만 조회 가능하도록 체크
+        if (userId != authenticatedUserId) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
+        }
+
+        User user = userService.getUserById(userId);
+        return ResponseEntity.ok(user);
+    }
 }
