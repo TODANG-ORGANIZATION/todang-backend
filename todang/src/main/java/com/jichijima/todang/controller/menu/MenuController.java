@@ -1,5 +1,6 @@
 package com.jichijima.todang.controller.menu;
 
+import com.jichijima.todang.model.dto.menu.MenuRequest;
 import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.service.menu.MenuService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import javax.swing.text.html.Option;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/menu")
+@RequestMapping("/api/menus")
 @RequiredArgsConstructor
 public class MenuController {
 
@@ -38,24 +39,25 @@ public class MenuController {
 
     // 새로운 메뉴 추가
     @PostMapping("")
-    public ResponseEntity<?> insertMenu(@RequestBody Menu menu){
-        Menu createdMenu = menuService.createMenu(menu);
+    public ResponseEntity<?> insertMenu(@RequestBody MenuRequest menuRequest){
+        Menu createdMenu = menuService.createMenu(menuRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdMenu);
     }
 
     // 메뉴 정보 수정
     @PutMapping("/{menuId}")
-    public ResponseEntity<?> updateMenu(@PathVariable Long menuId, @RequestBody Menu menu){
-        boolean isUpdated = menuService.updateMenu(menuId, menu);
+    public ResponseEntity<?> updateMenu(@PathVariable Long menuId, @RequestBody MenuRequest menuRequest){
+        boolean isUpdated = menuService.updateMenu(menuId, menuRequest);
         if (isUpdated)
             return ResponseEntity.ok().build();
         else
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("수정할 메뉴를 찾지 못했습니다.");
     }
 
+    // 메뉴 정보 일부 수정
     @PatchMapping("/{menuId}")
-    public ResponseEntity<?> patchMenu(@PathVariable Long menuId, @RequestBody Menu menu){
-        boolean isUpdated = menuService.patchMenu(menuId, menu);
+    public ResponseEntity<?> patchMenu(@PathVariable Long menuId, @RequestBody MenuRequest menuRequest){
+        boolean isUpdated = menuService.patchMenu(menuId, menuRequest);
         if (isUpdated)
             return ResponseEntity.ok().build();
         else

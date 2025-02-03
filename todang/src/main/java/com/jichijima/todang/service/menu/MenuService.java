@@ -1,5 +1,6 @@
 package com.jichijima.todang.service.menu;
 
+import com.jichijima.todang.model.dto.menu.MenuRequest;
 import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.repository.menu.MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,18 +33,23 @@ public class MenuService {
     }
 
     // 새로운 메뉴 추가
-    public Menu createMenu(Menu menu){
+    public Menu createMenu(MenuRequest menuRequest){
+        Menu menu = new Menu();
+        if (menuRequest.getRestaurantId() != null) menu.setRestaurantId(menuRequest.getRestaurantId());
+        if (menuRequest.getMenuCategoryId() != null) menu.setMenuCategoryId(menuRequest.getMenuCategoryId());
+        if (menuRequest.getName() != null) menu.setName(menuRequest.getName());
+        if (menuRequest.getPrice() != null) menu.setPrice(menuRequest.getPrice());
+        if (menuRequest.getMenuPhoto() != null) menu.setMenuPhoto(menuRequest.getMenuPhoto());
         return menuRepository.save(menu);
     }
 
     // 메뉴 수정
-    public boolean updateMenu(Long menuId, Menu updateMenu) {
+    public boolean updateMenu(Long menuId, MenuRequest menuRequest) {
         return menuRepository.findById(menuId)
                 .map(menu -> {
-                    menu.setName(updateMenu.getName());
-                    menu.setPrice(updateMenu.getPrice());
-                    menu.setMenuPhoto(updateMenu.getMenuPhoto());
-                    menu.setSoldout(updateMenu.getSoldout());
+                    menu.setName(menuRequest.getName());
+                    menu.setPrice(menuRequest.getPrice());
+                    menu.setMenuPhoto(menuRequest.getMenuPhoto());
                     menuRepository.save(menu);
                     return true;
                 })
@@ -51,24 +57,24 @@ public class MenuService {
     }
 
     // 메뉴 정보 부분 수정 (PATCH)
-    public boolean patchMenu(Long menuId, Menu menu){
+    public boolean patchMenu(Long menuId, MenuRequest menuRequest){
         return menuRepository.findById(menuId)
                 .map(existingMenu -> {
                     boolean isUpdated = false;
-                    if (menu.getName() != null) {
-                        existingMenu.setName(menu.getName());
+                    if (menuRequest.getName() != null) {
+                        existingMenu.setName(menuRequest.getName());
                         isUpdated = true;
                     }
-                    if (menu.getPrice() != null){
-                        existingMenu.setPrice(menu.getPrice());
+                    if (menuRequest.getPrice() != null){
+                        existingMenu.setPrice(menuRequest.getPrice());
                         isUpdated = true;
                     }
-                    if (menu.getMenuPhoto() != null){
-                        existingMenu.setMenuPhoto(menu.getMenuPhoto());
+                    if (menuRequest.getMenuPhoto() != null){
+                        existingMenu.setMenuPhoto(menuRequest.getMenuPhoto());
                         isUpdated = true;
                     }
-                    if (menu.getSoldout() != null){
-                       existingMenu.setSoldout(menu.getSoldout());
+                    if (menuRequest.getSoldout() != null){
+                       existingMenu.setSoldout(menuRequest.getSoldout());
                        isUpdated = true;
                     }
 

@@ -31,4 +31,11 @@ public class Menu {
 
     @Column(nullable = false)
     private Boolean soldout;
+
+    @PrePersist
+    public void prePersist() {
+        if (soldout == null) {
+            soldout = false;
+        }
+    }
 }
