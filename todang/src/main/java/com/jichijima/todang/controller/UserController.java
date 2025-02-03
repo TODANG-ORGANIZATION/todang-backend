@@ -20,6 +20,7 @@ public class UserController {
      */
     @PostMapping("/signup")
     public ResponseEntity<User> signup(@RequestBody Map<String, String> request) {
+        System.out.println("🚀 회원가입 요청 수신됨: " + request); // 요청 로그 추가
         User user = userService.signup(
                 request.get("name"),
                 request.get("nickname"),
@@ -47,5 +48,17 @@ public class UserController {
     public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam(value = "email") String email) {
         boolean isTaken = userService.isEmailTaken(email);
         return ResponseEntity.ok(Map.of("isAvailable", !isTaken));
+    }
+
+    /**
+     * 로그인 API
+     */
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String password = request.get("password");
+
+        String token = userService.login(email, password);
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }
