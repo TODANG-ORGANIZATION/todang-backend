@@ -8,7 +8,7 @@ pipeline {
         DOCKER_IMAGE_TAG = "latest"
 
         // GitHub 정보
-        GIT_BRANCH = 'main'
+        GIT_BRANCH = 'refactor/make-dockerfile'
 
         // 배포 서버 정보
         DEPLOY_SERVER = 'i12a701.p.ssafy.io'
