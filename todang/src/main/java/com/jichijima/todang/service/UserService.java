@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor // 🎯 의존성 자동 주입
@@ -65,27 +65,37 @@ public class UserService {
     /**
      * 로그인 처리 로직
      */
-    public String login(String email, String password) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
-
-        if (userOptional.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일이 존재하지 않습니다.");
-        }
-
-        User user = userOptional.get();
+    public Map<String, String> login(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "이메일이 존재하지 않습니다."));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.");
         }
 
-        //액세스 토큰과 리프레시 토큰 생성
+        // 액세스 토큰 & 리프레시 토큰 생성
         String accessToken = jwtUtil.generateToken(email);
         String refreshToken = jwtUtil.generateRefreshToken(email);
 
-        //리프레시 토큰 DB저장
-        user.setRefreshToken(refreshToken);
+        // 리프레시 토큰을 해싱하여 저장
+        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+        user.setRefreshToken(hashedRefreshToken);
         userRepository.save(user);
 
-        return accessToken; // 액세스 토큰만 반환 (리프레시 토큰은 별도 API로 관리)
+        // 액세스 토큰 & 원본 리프레시 토큰 함께 반환
+        return Map.of(
+                "accessToken", accessToken,
+                "refreshToken", refreshToken // 원본 리프레시 토큰 반환 (프론트엔드에서 저장)
+        );
+    }
+
+    /**
+     * 로그아웃 기능 구현
+     */
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        user.setRefreshToken(null);
+        userRepository.save(user);
     }
 }

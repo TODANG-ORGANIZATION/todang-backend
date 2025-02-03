@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/api/users/login",   // ✅ 로그인 허용
                                 "/api/users/check-nickname",
                                 "/api/users/check-email",
+                                "/api/users/logout",
                                 "/error"              // ✅ 에러 페이지도 허용 (403 방지)
                         ).permitAll()
                         .anyRequest().authenticated() // 나머지 요청은 인증 필요

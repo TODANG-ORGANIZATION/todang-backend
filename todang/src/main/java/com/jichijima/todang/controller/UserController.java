@@ -1,7 +1,6 @@
 package com.jichijima.todang.controller;
 
 import com.jichijima.todang.model.dto.user.UserLoginRequest;
-import com.jichijima.todang.model.dto.user.UserLoginResponse;
 import com.jichijima.todang.model.dto.user.UserSignupRequest;
 import com.jichijima.todang.model.entity.User;
 import com.jichijima.todang.repository.UserRepository;
@@ -10,6 +9,7 @@ import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,6 +23,7 @@ public class UserController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     /**
      * 회원가입 API
@@ -63,9 +64,9 @@ public class UserController {
      * 로그인 API
      */
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
-        String token = userService.login(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(new UserLoginResponse(token));
+    public ResponseEntity<Map<String, String>> login(@RequestBody UserLoginRequest request) {
+        Map<String, String> tokens = userService.login(request.getEmail(), request.getPassword());
+        return ResponseEntity.ok(tokens);
     }
 
     /**
@@ -83,14 +84,39 @@ public class UserController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
-        // ✅ 저장된 리프레시 토큰과 비교
+        // 저장된 리프레시 토큰과 비교
         if (!refreshToken.equals(user.getRefreshToken())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 일치하지 않습니다.");
         }
 
-        // ✅ 새 액세스 토큰 발급
+        // 새 액세스 토큰 발급
         String newAccessToken = jwtUtil.generateToken(email);
 
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
+
+    /**
+     * 로그아웃 API
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        String email = jwtUtil.extractEmail(refreshToken);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+
+        // 저장된 리프레시 토큰(해싱)과 비교
+        if (!passwordEncoder.matches(refreshToken, user.getRefreshToken())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 일치하지 않습니다.");
+        }
+
+        userService.logout(email);
+        return ResponseEntity.ok(Map.of("message", "로그아웃 되었습니다."));
+    }
+
 }
