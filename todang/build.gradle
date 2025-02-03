@@ -21,8 +21,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.3.4'
 
-    // MySQL과 함께 사용할 H2 인메모리 데이터베이스 추가 (테스트용)
-    testImplementation 'com.h2database:h2'
+    // Spring Security 추가 (BCryptPasswordEncoder 사용을 위해 필요)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // JUnit 5 테스트 설정
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
