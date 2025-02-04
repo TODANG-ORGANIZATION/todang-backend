@@ -1,8 +1,6 @@
 package com.jichijima.todang.controller.user;
 
-import com.jichijima.todang.model.dto.user.UserLoginRequest;
-import com.jichijima.todang.model.dto.user.UserSignupRequest;
-import com.jichijima.todang.model.dto.user.UserUpdateRequest;
+import com.jichijima.todang.model.dto.user.*;
 import com.jichijima.todang.model.entity.user.User;
 import com.jichijima.todang.repository.user.UserRepository;
 import com.jichijima.todang.service.user.UserService;
@@ -75,9 +73,12 @@ public class UserController {
     /**
      * 리프레시 토큰으로 새 액세스 토큰 발급
      */
+    /**
+     * 리프레시 토큰으로 새 액세스 토큰 발급
+     */
     @PostMapping("/refresh-token")
-    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
 
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 유효하지 않습니다.");
@@ -95,8 +96,9 @@ public class UserController {
         // 새 액세스 토큰 발급
         String newAccessToken = jwtUtil.generateToken(email);
 
-        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        return ResponseEntity.ok(new RefreshTokenResponse(newAccessToken));
     }
+
 
     /**
      * 로그아웃 API
