@@ -27,8 +27,6 @@ dependencies {
     implementation 'org.springframework.security:spring-security-web:6.4.2'
     implementation 'org.springframework.security:spring-security-config:6.4.2'
 
-
-
     // JUnit 5 테스트 설정
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -37,7 +35,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    // https://mvnrepository.com/artifact/com.mysql/mysql-connector-j
+    // 데이터 유효성 검사
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     // MySQL JDBC 드라이버
     implementation 'com.mysql:mysql-connector-j:8.3.0'
 
