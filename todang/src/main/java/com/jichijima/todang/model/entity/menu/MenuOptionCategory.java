@@ -6,7 +6,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "menu_option_category")
+@Table(name = "menu_option_categories")
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,7 +23,7 @@ public class MenuOptionCategory {
     private String name;
 
     @Column(nullable = false)
-    private Boolean isNeccessary;
+    private Boolean isNecessary;
 
     @Column(nullable = false)
     private Long cntMin;
