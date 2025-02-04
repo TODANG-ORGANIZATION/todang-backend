@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrderMenuOptionRepository extends JpaRepository<OrderMenuOption, Long> {
-    
+
 }
