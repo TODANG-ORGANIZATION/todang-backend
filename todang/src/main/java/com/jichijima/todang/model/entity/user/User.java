@@ -29,7 +29,7 @@ public class User {
     @Column(nullable = true)
     private String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String tel;
 
     private String userPhoto;
