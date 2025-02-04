@@ -1,6 +1,6 @@
 package com.jichijima.todang.user;
 
-import com.jichijima.todang.model.entity.User;
+import com.jichijima.todang.model.entity.user.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

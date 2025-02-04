@@ -1,6 +1,6 @@
-package com.jichijima.todang.repository;
+package com.jichijima.todang.repository.user;
 
-import com.jichijima.todang.model.entity.User;
+import com.jichijima.todang.model.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

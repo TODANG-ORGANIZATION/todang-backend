@@ -1,5 +1,5 @@
 package com.jichijima.todang.model.dto.user;
-import com.jichijima.todang.model.entity.User;
+import com.jichijima.todang.model.entity.user.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,11 +1,11 @@
-package com.jichijima.todang.controller;
+package com.jichijima.todang.controller.user;
 
 import com.jichijima.todang.model.dto.user.UserLoginRequest;
 import com.jichijima.todang.model.dto.user.UserSignupRequest;
 import com.jichijima.todang.model.dto.user.UserUpdateRequest;
-import com.jichijima.todang.model.entity.User;
-import com.jichijima.todang.repository.UserRepository;
-import com.jichijima.todang.service.UserService;
+import com.jichijima.todang.model.entity.user.User;
+import com.jichijima.todang.repository.user.UserRepository;
+import com.jichijima.todang.service.user.UserService;
 import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

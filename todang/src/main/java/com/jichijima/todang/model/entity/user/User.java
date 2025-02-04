@@ -1,4 +1,4 @@
-package com.jichijima.todang.model.entity;
+package com.jichijima.todang.model.entity.user;
 
 
 import jakarta.persistence.*;

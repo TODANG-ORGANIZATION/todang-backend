@@ -1,7 +1,7 @@
 package com.jichijima.todang.config;
 
 import com.jichijima.todang.filter.JwtAuthenticationFilter;
-import com.jichijima.todang.service.CustomUserDetailsService;
+import com.jichijima.todang.service.user.CustomUserDetailsService;
 import com.jichijima.todang.service.user.CustomOAuth2UserService;
 import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;

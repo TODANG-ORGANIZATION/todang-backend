@@ -1,7 +1,7 @@
 package com.jichijima.todang.service.user;
 
-import com.jichijima.todang.model.entity.User;
-import com.jichijima.todang.repository.UserRepository;
+import com.jichijima.todang.model.entity.user.User;
+import com.jichijima.todang.repository.user.UserRepository;
 import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
