@@ -23,11 +23,11 @@ public class MenuOptionCategory {
     private String name;
 
     @Column(nullable = false)
-    private Boolean isNeccessary;
+    private Boolean isNecessary;
 
     @Column(nullable = false)
-    private Long cntMin;
+    private Short cntMin;
 
     @Column(nullable = false)
-    private Long cntMax;
+    private Short cntMax;
 }
