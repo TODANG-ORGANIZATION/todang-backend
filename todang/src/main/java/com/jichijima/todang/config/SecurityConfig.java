@@ -2,6 +2,7 @@ package com.jichijima.todang.config;
 
 import com.jichijima.todang.filter.JwtAuthenticationFilter;
 import com.jichijima.todang.service.CustomUserDetailsService;
+import com.jichijima.todang.service.user.CustomOAuth2UserService;
 import com.jichijima.todang.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -11,9 +12,12 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -22,6 +26,7 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -39,23 +44,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // ✅ CSRF 비활성화 (테스트용)
-                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)) // ✅ 세션 사용 안 함
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/users/signup",  // ✅ 회원가입 허용
-                                "/api/users/login",   // ✅ 로그인 허용
+                                "/api/users/signup",
+                                "/api/users/login",
                                 "/api/users/check-nickname",
                                 "/api/users/check-email",
                                 "/api/users/logout",
-                                "/error"              // ✅ 에러 페이지도 허용 (403 방지)
+                                "/oauth2/authorization/naver",
+                                "/login/oauth2/code/naver",
+                                "/error"
                         ).permitAll()
-                        .anyRequest().authenticated() // 나머지 요청은 인증 필요
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService), UsernamePasswordAuthenticationFilter.class) // ✅ JWT 필터 추가
-                .formLogin(login -> login.disable()) // 기본 로그인 비활성화
-                .httpBasic(httpBasic -> httpBasic.disable()); // HTTP Basic 인증 비활성화
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler((request, response, authentication) -> {
+                            // OAuth2 로그인 성공 시 처리
+                            response.sendRedirect("/api/users/oauth-success");
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            // 로그인 실패 시 처리
+                            response.sendRedirect("/login?error");
+                        })
+                )
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService), UsernamePasswordAuthenticationFilter.class)
+                .formLogin(login -> login.disable())
+                .httpBasic(httpBasic -> httpBasic.disable());
 
         return http.build();
+    }
+
+    @Bean
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOriginPattern("*"); // 모든 도메인 허용 (필요시 특정 도메인으로 제한)
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

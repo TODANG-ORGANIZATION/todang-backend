@@ -26,7 +26,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = true) // SNS 로그인을 고려하여 nullable 허용
+    @Column(nullable = true)
     private String password;
 
     @Column(nullable = false, unique = true)
@@ -34,14 +34,23 @@ public class User {
 
     private String userPhoto;
 
-    @Enumerated(EnumType.ORDINAL) // Enum 값을 숫자로 저장 (0, 1)
-    @Column(nullable = false, columnDefinition = "TINYINT")
+    @Enumerated(EnumType.STRING) // ENUM을 문자열로 저장
+    @Column(nullable = false)
     private Role role;
 
-    @Column(length = 500) // 리프레시 토큰 저장
-    private String refreshToken; // JWT 리프레시 토큰 저장
+    @Column(length = 500)
+    private String refreshToken;
 
     public enum Role {
         CUSTOMER, OWNER
     }
+
+    // OAuth2 사용자 업데이트
+    public User update(String nickname, String profileImage, String mobile) {
+        this.nickname = nickname;
+        this.userPhoto = profileImage;
+        this.tel = mobile;
+        return this;
+    }
+
 }
