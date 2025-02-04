@@ -5,3 +5,25 @@ services:
       - .env
     ports:
       - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      #만약 Docker 없이 로컬에서 스프링 부트를 실행한다면 localhost를 사용하지만,
+      #Docker 컨테이너 환경에서는 서비스 이름(mysql)을 사용해야 합니다.
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/toodang
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: toodang
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:  # 볼륨 정의
