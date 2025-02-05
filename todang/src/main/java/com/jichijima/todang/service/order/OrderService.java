@@ -46,6 +46,7 @@ public class OrderService {
         if (orderRequest.getState() != null) order.setState(orderRequest.getState());
         if (orderRequest.getPrice() != null) order.setPrice(orderRequest.getPrice());
         if (orderRequest.getEstimatedTime() != null) order.setEstimatedTime(orderRequest.getEstimatedTime());
+        if (orderRequest.getOrderDatetime() != null) order.setOrderDatetime(orderRequest.getOrderDatetime());
         if (orderRequest.getFinishDatetime() != null) order.setFinishDatetime(orderRequest.getFinishDatetime());
         if (orderRequest.getRequirement() != null) orderRequest.setRequirement(orderRequest.getRequirement());
         if (orderRequest.getTel() != null) order.setTel(orderRequest.getTel());

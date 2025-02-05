@@ -1,5 +1,6 @@
 package com.jichijima.todang.model.dto.order;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
@@ -18,7 +19,9 @@ public class OrderRequest {
     private Integer price;
     @Min(value = 0, message = "예상소요시간은 0 이상이어야 합니다.")
     private Integer estimatedTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime orderDatetime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime finishDatetime;
     private String requirement;
     private String tel;

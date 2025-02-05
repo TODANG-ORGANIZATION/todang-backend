@@ -11,5 +11,5 @@ import java.util.List;
 
 @Repository
 public interface OrderMenuOptionRepository extends JpaRepository<OrderMenuOption, Long> {
-
+    List<OrderMenuOption> findByOrderMenuId(Long orderMenuId);
 }

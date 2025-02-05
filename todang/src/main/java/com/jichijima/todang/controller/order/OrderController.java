@@ -1,12 +1,15 @@
 package com.jichijima.todang.controller.order;
 
 import com.jichijima.todang.model.dto.menu.MenuRequest;
+import com.jichijima.todang.model.dto.order.OrderMenuOptionRequest;
 import com.jichijima.todang.model.dto.order.OrderMenuRequest;
 import com.jichijima.todang.model.dto.order.OrderRequest;
 import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.model.entity.order.Order;
 import com.jichijima.todang.model.entity.order.OrderMenu;
+import com.jichijima.todang.model.entity.order.OrderMenuOption;
 import com.jichijima.todang.service.menu.MenuService;
+import com.jichijima.todang.service.order.OrderMenuOptionService;
 import com.jichijima.todang.service.order.OrderMenuService;
 import com.jichijima.todang.service.order.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderMenuService orderMenuService;
+    private final OrderMenuOptionService orderMenuOptionService;
 
     // 주문 내역 목록 조회
     @GetMapping("")
@@ -52,6 +56,13 @@ public class OrderController {
         return ResponseEntity.ok(orderMenus);
     }
 
+    // 주문 내역 메뉴 옵션 목록 조회
+    @GetMapping("/order-menu/{orderMenuId}/order-menu-options")
+    public ResponseEntity<List<OrderMenuOption>> getOrderMenuOptions(@PathVariable Long orderMenuId){
+        List<OrderMenuOption> orderMenuOptions = orderMenuOptionService.getOrderMenuOptions(orderMenuId);
+        return ResponseEntity.ok(orderMenuOptions);
+    }
+
     // 주문 내역 추가
     @PostMapping("")
     public ResponseEntity<?> insertOrder(@RequestBody OrderRequest orderRequest){
@@ -64,8 +75,18 @@ public class OrderController {
 
     // 주문 내역 메뉴 추가
     @PostMapping("/menus")
-    public ResponseEntity<?> insertOrderMenus(@RequestParam OrderMenuRequest orderMenuRequest){
+    public ResponseEntity<?> insertOrderMenus(@RequestBody OrderMenuRequest orderMenuRequest){
         boolean isCreated = orderMenuService.createOrderMenu(orderMenuRequest);
+        if (isCreated)
+            return ResponseEntity.ok().build();
+        else
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("추가에 실패했습니다.");
+    }
+
+    // 주문 내역 메뉴 옵션 추가
+    @PostMapping("/menus/menu-options")
+    public ResponseEntity<?> insertOrderMenuOption(@RequestBody OrderMenuOptionRequest orderMenuOptionRequest){
+        boolean isCreated = orderMenuOptionService.createOrderMenuOption(orderMenuOptionRequest);
         if (isCreated)
             return ResponseEntity.ok().build();
         else

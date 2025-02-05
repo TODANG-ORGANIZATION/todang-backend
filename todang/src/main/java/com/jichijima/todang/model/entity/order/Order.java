@@ -42,4 +42,11 @@ public class Order {
 
     @Column(length = 20)
     private String tel;
+
+    @PrePersist
+    public void prePersist() {
+        if (state == null) {
+            state = 0;
+        }
+    }
 }
