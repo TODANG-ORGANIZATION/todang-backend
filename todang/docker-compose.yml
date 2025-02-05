@@ -25,7 +25,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
   openvidu:
-    image: openvidu/openvidu-server:main
+    image: openvidu/openvidu-server:2.29.0
     container_name: openvidu-server
     ports:
       - "443:443"
