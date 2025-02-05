@@ -36,5 +36,13 @@ services:
       - OPENVIDU_CDR=false
     volumes:
       - ./openvidu/recordings:/openvidu/recordings  # 볼륨 경로 수정
+  kms:
+    image: kurento/kurento-media-server:latest
+    container_name: kms
+    ports:
+      - "8888:8888"
+    environment:
+      - KMS_MIN_PORT=40000
+      - KMS_MAX_PORT=57000
 volumes:
   mysql-data:  # 볼륨 정의
