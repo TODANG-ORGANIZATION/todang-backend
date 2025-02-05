@@ -5,3 +5,45 @@ services:
       - .env
     ports:
       - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      #만약 Docker 없이 로컬에서 스프링 부트를 실행한다면 localhost를 사용하지만,
+      #Docker 컨테이너 환경에서는 서비스 이름(mysql)을 사용해야 합니다.
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/toodang
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: toodang
+    volumes:
+      - mysql-data:/var/lib/mysql
+  openvidu:
+    image: openvidu/openvidu-server:2.29.0
+    container_name: openvidu-server
+    ports:
+      - "443:443"
+    environment:
+      - OPENVIDU_SECRET=toodang-openvidu-secret-key
+      - DOMAIN_OR_PUBLIC_IP=i12a701.p.ssafy.io
+      - CERTIFICATE_TYPE=selfsigned
+      - OPENVIDU_CDR=false
+      - KMS_URIS=["ws://kms:8888/kurento"]  # 여기를 수정했습니다
+    depends_on:
+      - kms
+  kms:
+    image: kurento/kurento-media-server:latest
+    container_name: kms
+    ports:
+      - "8888:8888"
+    environment:
+      - KMS_MIN_PORT=40000
+      - KMS_MAX_PORT=57000
+volumes:
+  mysql-data:  # 볼륨 정의
