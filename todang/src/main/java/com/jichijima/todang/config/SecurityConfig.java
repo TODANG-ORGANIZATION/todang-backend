@@ -55,6 +55,7 @@ public class SecurityConfig {
                                 "/api/users/logout",
                                 "/oauth2/authorization/naver",
                                 "/login/oauth2/code/naver",
+                                "/api/addresses/**",
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
