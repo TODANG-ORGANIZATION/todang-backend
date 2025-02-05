@@ -34,8 +34,9 @@ services:
       - DOMAIN_OR_PUBLIC_IP=i12a701.p.ssafy.io
       - CERTIFICATE_TYPE=selfsigned
       - OPENVIDU_CDR=false
-    volumes:
-      - ./openvidu/recordings:/openvidu/recordings  # 볼륨 경로 수정
+      - KMS_URIS=["ws://kms:8888/kurento"]  # 여기를 수정했습니다
+    depends_on:
+      - kms
   kms:
     image: kurento/kurento-media-server:latest
     container_name: kms
