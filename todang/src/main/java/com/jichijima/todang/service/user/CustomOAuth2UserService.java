@@ -39,7 +39,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 throw new RuntimeException("❌ 네이버 OAuth2 Response가 없습니다.");
             }
 
-            String email = (String) response.get("email");
+            String email = (String) response.getOrDefault("email", null);
+            if (email == null || email.isEmpty()) {
+                System.err.println("❌ 네이버 OAuth2 응답에 email이 포함되지 않았습니다!");
+                throw new RuntimeException("❌ 네이버 OAuth2 응답에 email이 없습니다.");
+            }
             String nickname = (String) response.get("nickname");
             String name = (String) response.get("name");
             String profileImage = (String) response.get("profile_image");
@@ -67,7 +71,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             return new DefaultOAuth2User(
                     Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
-                    attributes,
+                    response,
                     "email"
             );
 
