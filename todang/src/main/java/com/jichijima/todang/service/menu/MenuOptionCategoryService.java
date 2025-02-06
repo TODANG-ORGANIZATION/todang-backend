@@ -6,6 +6,7 @@ import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.model.entity.menu.MenuOption;
 import com.jichijima.todang.model.entity.menu.MenuOptionCategory;
 import com.jichijima.todang.repository.menu.MenuOptionCategoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,8 @@ import java.util.*;
 public class MenuOptionCategoryService {
 
     private final MenuOptionCategoryRepository menuOptionCategoryRepository;
+
+    private final MenuOptionService menuOptionService;
 
     // 메뉴 옵션 카테고리 조회 (QueryString menuId)
     public List<MenuOptionCategory> getMenuOptionCategories(Long menuId){
@@ -57,12 +60,32 @@ public class MenuOptionCategoryService {
     }
 
     // 메뉴 옵션 카테고리 삭제
+    @Transactional
     public boolean deleteMenuOptionCategory(Long menuOptionCategoryId){
         Optional<MenuOptionCategory> menuOptionCategory = menuOptionCategoryRepository.findById(menuOptionCategoryId);
         if (menuOptionCategory.isPresent()){
+            // 메뉴 옵션 카테고리에 존재하는 메뉴 옵션 삭제
+            menuOptionService.deleteMenuOptionByMenuOptionCategoryId(menuOptionCategoryId);
+            // 메뉴 옵션 카테고리 삭제
             menuOptionCategoryRepository.delete(menuOptionCategory.get());
             return true;
         }else
             return false;
+    }
+
+    // 메뉴 옵션 카테고리 menuId로 삭제
+    @Transactional
+    public boolean deleteMenuOptionCategoryByMenuId(Long menuId){
+        // 삭제될 메뉴 옵션 카테고리 Id 가져오기
+        List<Long> menuOptionCategoryIds = menuOptionCategoryRepository.findMenuOptionCategoryIdsByMenuId(menuId);
+
+        // 메뉴 옵션 카테고리와 관련된 메뉴 옵션 전부 삭제
+        for (Long menuOptionCategoryId : menuOptionCategoryIds)
+            menuOptionService.deleteMenuOptionByMenuOptionCategoryId(menuOptionCategoryId);
+
+        // 특정 메뉴 아이디에 존재하는 장바구니 품목 메뉴 옵션 전부 삭제
+        int deletedCount = menuOptionCategoryRepository.deleteByMenuId(menuId);
+
+        return deletedCount > 0;
     }
 }
