@@ -30,18 +30,19 @@ public class UserController {
      * 회원가입 API
      */
     @PostMapping("/signup")
-    public ResponseEntity<User> signup(@RequestBody UserSignupRequest request) {
-        System.out.println("🚀 회원가입 요청 수신됨: " + request); // 요청 로그 추가
+    public ResponseEntity<UserResponse> signup(@RequestBody UserSignupRequest request) {
+        System.out.println("🚀 회원가입 요청 수신됨: " + request);
         User user = userService.signup(
                 request.getName(),
                 request.getNickname(),
                 request.getEmail(),
                 request.getPassword(),
                 request.getTel(),
-                request.getRoleEnum() // ✅ ENUM 변환된 값 전달
+                request.getRoleEnum()
         );
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(new UserResponse(user));
     }
+
 
     /**
      * 닉네임 중복 확인 API
@@ -56,23 +57,20 @@ public class UserController {
      * 이메일 중복 확인 API
      */
     @GetMapping("/check-email")
-    public ResponseEntity<Map<String, Boolean>> checkEmail(@RequestParam(value = "email") String email) {
+    public ResponseEntity<CheckEmailResponse> checkEmail(@RequestParam(value = "email") String email) {
         boolean isTaken = userService.isEmailTaken(email);
-        return ResponseEntity.ok(Map.of("isAvailable", !isTaken));
+        return ResponseEntity.ok(new CheckEmailResponse(!isTaken));
     }
 
     /**
      * 로그인 API
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
         Map<String, String> tokens = userService.login(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(tokens);
+        return ResponseEntity.ok(new UserLoginResponse(tokens.get("accessToken"), tokens.get("refreshToken")));
     }
 
-    /**
-     * 리프레시 토큰으로 새 액세스 토큰 발급
-     */
     /**
      * 리프레시 토큰으로 새 액세스 토큰 발급
      */
@@ -128,7 +126,7 @@ public class UserController {
      * 사용자 정보 조회 API(본인만 가능)
      */
     @GetMapping("/{user_id}")
-    public ResponseEntity<User> getUserInfo(
+    public ResponseEntity<UserResponse> getUserInfo(
             @PathVariable("user_id") long userId,
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -145,14 +143,14 @@ public class UserController {
         }
 
         User user = userService.getUserById(userId);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(new UserResponse(user));
     }
 
     /**
      * 회원 정보 수정 API
      */
     @PutMapping("/{user_id}")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserResponse> updateUser(
             @PathVariable("user_id") Long userId,
             @RequestHeader("Authorization") String authHeader,
             @RequestBody UserUpdateRequest request) {
@@ -164,6 +162,6 @@ public class UserController {
         // 본인 확인 후 업데이트 수행
         User updatedUser = userService.updateUser(userId, email, request);
 
-        return ResponseEntity.ok(updatedUser);
+        return ResponseEntity.ok(new UserResponse(updatedUser));
     }
 }

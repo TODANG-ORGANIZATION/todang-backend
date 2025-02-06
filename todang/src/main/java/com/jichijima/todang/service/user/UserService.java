@@ -131,26 +131,27 @@ public class UserService {
         }
 
         // 닉네임 중복 체크 (변경 시에만 실행)
-        if (request.getNickName() != null && !user.getNickname().equals(request.getNickName())) {
-            if (userRepository.existsByNickname(request.getNickName())) {
+        if (request.getNickname() != null && !user.getNickname().equals(request.getNickname())) {
+            if (userRepository.existsByNickname(request.getNickname())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다.");
             }
         }
 
         // 이메일 중복 체크 (변경 시에만 실행)
         if (request.getEmail() != null && !user.getEmail().equals(request.getEmail())) {
-            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-            if (existingUser.isPresent() && !existingUser.get().getId().equals(user.getId())) {
+            if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 존재하는 이메일입니다.");
             }
+
         }
 
         // 값 업데이트 (null이 아닌 경우에만)
-        if (request.getProfilePhoto() != null) user.setUserPhoto(request.getProfilePhoto());
-        if (request.getName() != null) user.setName(request.getName());
-        if (request.getNickName() != null) user.setNickname(request.getNickName());
-        if (request.getTel() != null) user.setTel(request.getTel());
-        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        Optional.ofNullable(request.getPhoto()).ifPresent(user::setPhoto);
+        Optional.ofNullable(request.getName()).ifPresent(user::setName);
+        Optional.ofNullable(request.getNickname()).ifPresent(user::setNickname);
+        Optional.ofNullable(request.getTel()).ifPresent(user::setTel);
+        Optional.ofNullable(request.getEmail()).ifPresent(user::setEmail);
+
 
         // 업데이트 후 저장
         return userRepository.save(user);

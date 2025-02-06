@@ -62,7 +62,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                 .name(name)
                                 .email(email)
                                 .nickname(nickname != null ? nickname : "NAVER_" + email.split("@")[0])
-                                .userPhoto(profileImage)
+                                .photo(profileImage)
                                 .tel(mobile)
                                 .role(User.Role.CUSTOMER)
                                 .build();

@@ -8,9 +8,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class UserUpdateRequest {
-    private String profilePhoto;
+    private String photo;
     private String name;
-    private String nickName;
+    private String nickname;
     private String tel;
     private String email;
 }

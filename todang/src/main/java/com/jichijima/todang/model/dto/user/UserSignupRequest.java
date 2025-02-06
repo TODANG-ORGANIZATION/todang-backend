@@ -13,7 +13,7 @@ public class UserSignupRequest {
     private String email;
     private String password;
     private String tel;
-    private String role; // CUSTOMER 또는 OWNER (대문자로 변환 필요)
+    private String role;
 
     public User.Role getRoleEnum() {
         return User.Role.valueOf(this.role.toUpperCase()); // 대문자로 변환하여 ENUM 처리

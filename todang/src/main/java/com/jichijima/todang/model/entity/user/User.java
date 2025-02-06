@@ -1,6 +1,5 @@
 package com.jichijima.todang.model.entity.user;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,7 +31,7 @@ public class User {
     @Column(nullable = false)
     private String tel;
 
-    private String userPhoto;
+    private String photo;
 
     @Convert(converter = RoleConverter.class) // 명시적 변환기 적용
     @Column(nullable = false)
@@ -48,7 +47,7 @@ public class User {
     // OAuth2 사용자 업데이트
     public User update(String nickname, String profileImage, String mobile) {
         this.nickname = nickname;
-        this.userPhoto = profileImage;
+        this.photo = profileImage;
         this.tel = mobile;
         return this;
     }
