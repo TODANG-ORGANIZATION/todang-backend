@@ -72,6 +72,7 @@ public class SecurityConfig {
                                 "/oauth2/authorization/naver",
                                 "/login/oauth2/code/naver",
                                 "/api/users/oauth-success", // OAuth2 성공 후 JWT 반환 허용
+                                "/api/restaurants/**",
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
