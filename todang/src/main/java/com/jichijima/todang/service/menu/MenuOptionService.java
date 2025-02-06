@@ -5,6 +5,7 @@ import com.jichijima.todang.model.dto.menu.MenuRequest;
 import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.model.entity.menu.MenuOption;
 import com.jichijima.todang.repository.menu.MenuOptionRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +59,7 @@ public class MenuOptionService {
     }
 
     // 옵션 삭제
+    @Transactional
     public boolean deleteMenuOption(Long menuOptionId){
         Optional<MenuOption> menuOption = menuOptionRepository.findById(menuOptionId);
         if (menuOption.isPresent()){
@@ -65,5 +67,13 @@ public class MenuOptionService {
             return true;
         }else
             return false;
+    }
+
+    // 메뉴 옵션 menuOptionCategoryId로 삭제
+    @Transactional
+    public boolean deleteMenuOptionByMenuOptionCategoryId(Long menuOptionCategoryId){
+        // 특정 메뉴 아이디에 존재하는 장바구니 품목 메뉴 옵션 전부 삭제
+        int deletedCount = menuOptionRepository.deleteByMenuOptionCategoryId(menuOptionCategoryId);
+        return deletedCount > 0;
     }
 }
