@@ -20,6 +20,7 @@ public class RestaurantResponse {
     private String address;
     private String category;
     private float starAvg;
+    private float cleannessAvg;
     private int reviewCnt;
     private String photo;
 }

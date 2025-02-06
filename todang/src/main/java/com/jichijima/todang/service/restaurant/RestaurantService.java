@@ -36,7 +36,7 @@ public class RestaurantService {
         return restaurantRepository.findAll(spec).stream()
                 .map(r -> new RestaurantResponse(
                         r.getId(), r.getName(), r.isOpen(), r.isLive(), r.getAddress(),
-                        r.getCategory(), r.getStarAvg(), r.getReviewCnt(), r.getPhoto()))
+                        r.getCategory(), r.getStarAvg(), r.getCleannessAvg(), r.getReviewCnt(), r.getPhoto()))
                 .collect(Collectors.toList());
     }
 
@@ -60,6 +60,7 @@ public class RestaurantService {
                         like.getRestaurant().getAddress(),
                         like.getRestaurant().getCategory(),
                         like.getRestaurant().getStarAvg(),
+                        like.getRestaurant().getCleannessAvg(),
                         like.getRestaurant().getReviewCnt(),
                         like.getRestaurant().getPhoto()
                 ))
