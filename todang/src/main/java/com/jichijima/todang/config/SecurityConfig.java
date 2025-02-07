@@ -77,6 +77,8 @@ public class SecurityConfig {
                                 "/app/**",
                                 "/topic/**",
                                 "/api/**"
+                                "/api/restaurants/**",
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

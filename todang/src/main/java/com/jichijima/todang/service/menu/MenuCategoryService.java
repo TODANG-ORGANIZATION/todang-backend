@@ -5,6 +5,7 @@ import com.jichijima.todang.model.dto.menu.MenuRequest;
 import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.model.entity.menu.MenuCategory;
 import com.jichijima.todang.repository.menu.MenuCategoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.*;
 public class MenuCategoryService {
 
     private final MenuCategoryRepository menuCategoryRepository;
+    private final MenuService menuService;
 
     // 모든 메뉴 카테고리 조회
     public List<MenuCategory> getMenuCategories(Long restaurantId){
@@ -54,9 +56,13 @@ public class MenuCategoryService {
     }
     
     // 메뉴 카테고리 삭제
+    @Transactional
     public boolean deleteMenuCategory(Long menuCategoryId){
         Optional<MenuCategory> menuCategory = menuCategoryRepository.findById(menuCategoryId);
         if (menuCategory.isPresent()){
+            // 메뉴 카테고리에 존재하는 메뉴 삭제
+            menuService.deleteMenuByMenuCategoryId(menuCategoryId);
+            // 메뉴 카테고리 삭제
             menuCategoryRepository.delete(menuCategory.get());
             return true;
         }else

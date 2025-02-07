@@ -4,6 +4,7 @@ import com.jichijima.todang.model.dto.menu.MenuRequest;
 import com.jichijima.todang.model.entity.menu.Menu;
 import com.jichijima.todang.repository.menu.MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuRepository menuRepository;
+    private final MenuOptionCategoryService menuOptionCategoryService;
 
     // 모든 메뉴 조회
     public List<Menu> getAllMenus() {
@@ -94,12 +96,32 @@ public class MenuService {
     }
 
     // 메뉴 삭제
+    @Transactional
     public boolean deleteMenu(Long menuId){
-        Optional<Menu> menu = menuRepository.findById(menuId);
-        if (menu.isPresent()){
-            menuRepository.delete(menu.get());
+        // 해당 메뉴가 존재하면 삭제
+        if (menuRepository.existsById(menuId)){
+            // 메뉴에 존재하는 메뉴 옵션 카테고리 삭제
+            menuOptionCategoryService.deleteMenuOptionCategoryByMenuId(menuId);
+            // 메뉴 삭제
+            menuRepository.deleteById(menuId);
             return true;
-        }else
-            return false;
+        }
+        return false;
+    }
+
+    // 메뉴 카테고리 Id로 메뉴 삭제
+    @Transactional
+    public boolean deleteMenuByMenuCategoryId(Long menuCategoryId){
+        // 삭제될 메뉴 Id 가져오기
+        List<Long> menuIds = menuRepository.findMenuIdsByMenuCategoryId(menuCategoryId);
+
+        // 메뉴와 관련된 메뉴 옵션 카테고리 전부 삭제
+        for (Long menuId : menuIds)
+            menuOptionCategoryService.deleteMenuOptionCategoryByMenuId(menuId);
+
+        // 특정 메뉴 카테고리 아이디에 존재하는 메뉴 전부 삭제
+        int deletedCount = menuRepository.deleteByMenuCategoryId(menuCategoryId);
+
+        return deletedCount > 0;
     }
 }

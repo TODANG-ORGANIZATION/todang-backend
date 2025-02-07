@@ -34,7 +34,7 @@ public class User {
 
     private String userPhoto;
 
-    @Enumerated(EnumType.STRING) // ENUM을 문자열로 저장
+    @Convert(converter = RoleConverter.class) // 명시적 변환기 적용
     @Column(nullable = false)
     private Role role;
 
