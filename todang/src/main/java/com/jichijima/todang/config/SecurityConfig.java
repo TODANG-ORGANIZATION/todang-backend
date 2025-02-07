@@ -76,7 +76,7 @@ public class SecurityConfig {
                                 "/websocket/chat/**", // '/**' 추가 필요
                                 "/app/**",
                                 "/topic/**",
-                                "/api/**"
+                                "/api/**",
                                 "/api/restaurants/**",
                                 "/error"
                         ).permitAll()
