@@ -12,8 +12,11 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -28,56 +31,96 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             System.out.println("OAuth2 User Attributes: " + oAuth2User.getAttributes());
 
             String provider = userRequest.getClientRegistration().getRegistrationId();
-            if (!"naver".equals(provider)) {
+            Map<String, Object> attributes = oAuth2User.getAttributes();
+
+            if ("naver".equals(provider)) {
+                return processNaverUser(attributes);
+            } else if ("kakao".equals(provider)) {
+                return processKakaoUser(attributes);
+            } else {
                 throw new RuntimeException("❌ 지원되지 않는 OAuth2 제공자입니다: " + provider);
             }
-
-            Map<String, Object> attributes = oAuth2User.getAttributes();
-            Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-            if (response == null) {
-                System.out.println("❌ 네이버 OAuth2 Response가 없습니다. attributes: " + attributes);
-                throw new RuntimeException("❌ 네이버 OAuth2 Response가 없습니다.");
-            }
-
-            String email = (String) response.getOrDefault("email", null);
-            if (email == null || email.isEmpty()) {
-                System.err.println("❌ 네이버 OAuth2 응답에 email이 포함되지 않았습니다!");
-                throw new RuntimeException("❌ 네이버 OAuth2 응답에 email이 없습니다.");
-            }
-            String nickname = (String) response.get("nickname");
-            String name = (String) response.get("name");
-            String profileImage = (String) response.get("profile_image");
-            String mobile = (String) response.get("mobile");
-
-            System.out.println("🔍 네이버 로그인 사용자 이메일: " + email);
-            System.out.println("🔍 네이버 로그인 사용자 닉네임: " + nickname);
-            System.out.println("🔍 네이버 로그인 사용자 이름: " + name);
-            System.out.println("🔍 네이버 로그인 사용자 프로필 사진: " + profileImage);
-            System.out.println("🔍 네이버 로그인 사용자 휴대전화번호: " + mobile);
-
-            Optional<User> existingUser = userRepository.findByEmail(email);
-            User user = existingUser.map(entity -> entity.update(nickname, profileImage, mobile))
-                    .orElseGet(() -> {
-                        User newUser = User.builder()
-                                .name(name)
-                                .email(email)
-                                .nickname(nickname != null ? nickname : "NAVER_" + email.split("@")[0])
-                                .photo(profileImage)
-                                .tel(mobile)
-                                .role(User.Role.CUSTOMER)
-                                .build();
-                        return userRepository.save(newUser);
-                    });
-
-            return new DefaultOAuth2User(
-                    Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
-                    response,
-                    "email"
-            );
-
         } catch (Exception e) {
             System.err.println("OAuth2 로그인 중 에러 발생: " + e.getMessage());
             throw new RuntimeException("OAuth2 로그인 중 에러 발생", e);
         }
     }
+
+    private OAuth2User processNaverUser(Map<String, Object> attributes) {
+        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        if (response == null) {
+            throw new RuntimeException("❌ 네이버 OAuth2 Response가 없습니다.");
+        }
+
+        String email = (String) response.get("email");
+        String name = (String) response.get("name");  // ✅ name 추가
+        String nickname = (String) response.get("nickname");
+        String profileImage = (String) response.get("profile_image");
+        String mobile = (String) response.get("mobile");
+
+        User user = saveOrUpdateUser(email, name, nickname, profileImage, mobile, "naver");
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
+                response,
+                "email"
+        );
+    }
+
+
+    private OAuth2User processKakaoUser(Map<String, Object> attributes) {
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        if (kakaoAccount == null) {
+            throw new RuntimeException("❌ 카카오 OAuth2 응답에서 'kakao_account'를 찾을 수 없습니다.");
+        }
+
+        String email = (String) kakaoAccount.get("email");
+        String phoneNumber = kakaoAccount.containsKey("phone_number") ? (String) kakaoAccount.get("phone_number") : null;
+        if (phoneNumber == null) {
+            throw new RuntimeException("❌ 카카오 OAuth2 응답에서 'phone_number'를 찾을 수 없습니다. 전화번호는 필수 값입니다.");
+        }
+
+        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+        String nickname = (profile != null) ? (String) profile.get("nickname") : "Unknown";
+        String profileImage = (profile != null) ? (String) profile.get("profile_image_url") : null;
+        String name = (String) kakaoAccount.get("name");
+
+        if (email == null) {
+            throw new RuntimeException("❌ 카카오 OAuth2 응답에서 'email'을 찾을 수 없습니다.");
+        }
+        if (nickname == null) {
+            nickname = "User";
+        }
+
+        Map<String, Object> modifiedAttributes = new HashMap<>(attributes);
+        modifiedAttributes.put("email", email);  // email을 최상위에 포함
+
+        User user = saveOrUpdateUser(email, name, nickname, profileImage, phoneNumber, "kakao");
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority(user.getRole().name())),
+                modifiedAttributes,
+                "email"
+        );
+    }
+
+
+
+    private User saveOrUpdateUser(String email, String name, String nickname, String profileImage, String mobile, String provider) {
+        Optional<User> existingUser = userRepository.findByEmail(email);
+
+        return existingUser.map(entity -> entity.update(nickname, profileImage, mobile))
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .email(email)
+                            .name(name != null ? name : provider.toUpperCase() + "_USER") // ✅ name 추가
+                            .nickname(nickname != null ? nickname : provider.toUpperCase() + "_" + email.split("@")[0])
+                            .photo(profileImage)
+                            .tel(mobile)
+                            .role(User.Role.CUSTOMER)
+                            .build();
+                    return userRepository.save(newUser);
+                });
+    }
+
 }

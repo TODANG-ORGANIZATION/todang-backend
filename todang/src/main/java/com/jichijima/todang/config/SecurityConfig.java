@@ -70,15 +70,17 @@ public class SecurityConfig {
                                 "/api/users/check-email",
                                 "/api/users/logout",
                                 "/oauth2/authorization/naver",
+                                "/oauth2/authorization/kakao",
                                 "/login/oauth2/code/naver",
                                 "/api/users/oauth-success", // OAuth2 성공 후 JWT 반환 허용
                                 "/api/restaurants/**",
+                                ".api/**",
                                 "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/naver") // OAuth2 로그인 페이지 지정
+                        //.loginPage("/oauth2/authorization/nave") // OAuth2 로그인 페이지 지정
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
@@ -87,8 +89,9 @@ public class SecurityConfig {
                             response.sendRedirect("/api/users/oauth-success");
                         })
                         .failureHandler((request, response, exception) -> {
-                            // 로그인 실패 시 처리
-                            response.sendRedirect("/login?error");
+                            System.out.println("❌ OAuth2 로그인 실패: " + exception.getMessage());
+                            exception.printStackTrace();
+                            response.sendRedirect("/login?error=" + exception.getMessage());
                         })
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService), UsernamePasswordAuthenticationFilter.class)

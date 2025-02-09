@@ -20,13 +20,20 @@ public class OAuthController {
     private final JwtUtil jwtUtil;
 
     /**
-     * 네이버 로그인
+     * OAuth2 로그인 (네이버 & 카카오 통합)
      */
     @PostMapping("/login/sns")
-    public ResponseEntity<Map<String, String>> naverLogin(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> socialLogin(@RequestBody Map<String, String> request) {
+        String provider = request.get("provider"); // "naver" 또는 "kakao"
         String code = request.get("code"); // Authorization Code
 
-        return ResponseEntity.ok(oAuthService.loginWithNaver(code));
+        if ("naver".equalsIgnoreCase(provider)) {
+            return ResponseEntity.ok(oAuthService.loginWithNaver(code));
+        } else if ("kakao".equalsIgnoreCase(provider)) {
+            return ResponseEntity.ok(oAuthService.loginWithKakao(code));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("error", "지원되지 않는 OAuth2 제공자입니다."));
+        }
     }
 
     /**
@@ -43,9 +50,12 @@ public class OAuthController {
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
         String email = oauthUser.getAttribute("email");
 
+        if (email == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "OAuth2 응답에서 이메일을 찾을 수 없습니다."));
+        }
+
         // ✅ JWT 생성
         String jwtToken = jwtUtil.generateToken(email);
 
         return ResponseEntity.ok(Map.of("token", jwtToken));
-    }
-}
+    }}

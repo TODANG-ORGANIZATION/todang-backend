@@ -27,13 +27,29 @@ public class OAuthService {
     @Value("${NAVER_CLIENT_SECRET}")
     private String naverClientSecret;
 
+    // 카카오 OAuth2 설정값
+    @Value("${KAKAO_CLIENT_ID}")
+    private String kakaoClientId;
+
+    @Value("${KAKAO_CLIENT_SECRET}")
+    private String kakaoClientSecret;
+
     /**
-     * 네이버 OAuth 2.0 로그인 처리
+     * 네이버 OAuth2 로그인
      */
     public Map<String, String> loginWithNaver(String code) {
         String accessToken = getNaverAccessToken(code);
         Map<String, Object> userInfo = getNaverUserInfo(accessToken);
-        return processOAuthLogin(userInfo);
+        return processOAuthLogin(userInfo, "naver");
+    }
+
+    /**
+     * 카카오 OAuth2 로그인
+     */
+    public Map<String, String> loginWithKakao(String code) {
+        String accessToken = getKakaoAccessToken(code);
+        Map<String, Object> userInfo = getKakaoUserInfo(accessToken);
+        return processOAuthLogin(userInfo, "kakao");
     }
 
     /**
@@ -57,6 +73,43 @@ public class OAuthService {
     }
 
     /**
+     * 카카오 Access Token 요청
+     */
+    private String getKakaoAccessToken(String code) {
+        String tokenUrl = "https://kauth.kakao.com/oauth/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        String requestBody = "grant_type=authorization_code"
+                + "&client_id=" + kakaoClientId
+                + "&client_secret=" + kakaoClientSecret
+                + "&redirect_uri=http://localhost:8080/login/oauth2/code/kakao"
+                + "&code=" + code;
+
+        try {
+            System.out.println("🔹 카카오 Access Token 응답: dasdasdsad");
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    tokenUrl, HttpMethod.POST, new HttpEntity<>(requestBody, headers), Map.class);
+
+            System.out.println("🔹 카카오 Access Token 응답: " + response.getBody());
+
+            if (response.getBody() == null || response.getBody().get("access_token") == null) {
+                throw new RuntimeException("❌ 카카오 Access Token을 가져오지 못했습니다.");
+            }
+
+            return (String) response.getBody().get("access_token");
+        } catch (Exception e) {
+            System.out.println("❌ 카카오 Access Token 요청 실패: " + e.getMessage());
+            throw new RuntimeException("❌ 카카오 Access Token 요청 실패: " + e.getMessage());
+        }
+    }
+
+
+
+
+    /**
      * 네이버 사용자 정보 요청
      */
     private Map<String, Object> getNaverUserInfo(String accessToken) {
@@ -72,26 +125,63 @@ public class OAuthService {
     }
 
     /**
-     * 네이버 로그인 후 회원가입 및 JWT 발급
+     * 카카오 사용자 정보 요청
      */
-    private Map<String, String> processOAuthLogin(Map<String, Object> userInfo) {
-        Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
+    private Map<String, Object> getKakaoUserInfo(String accessToken) {
+        String userInfoUrl = "https://kapi.kakao.com/v2/user/me";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    userInfoUrl, HttpMethod.GET, new HttpEntity<>(headers), Map.class);
+
+            System.out.println("🔹 카카오 사용자 정보 응답: " + response.getBody());
+
+            if (response.getBody() == null) {
+                throw new RuntimeException("❌ 카카오 사용자 정보를 가져오지 못했습니다.");
+            }
+
+            return response.getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("❌ 카카오 사용자 정보 요청 실패: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * OAuth2 로그인 후 회원가입 및 JWT 발급
+     */
+    private Map<String, String> processOAuthLogin(Map<String, Object> userInfo, String provider) {
+        Map<String, Object> response = (provider.equals("naver"))
+                ? (Map<String, Object>) userInfo.get("response")
+                : (Map<String, Object>) userInfo.get("kakao_account");
 
         if (response == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "네이버 사용자 정보 조회 실패");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, provider.toUpperCase() + " 사용자 정보 조회 실패");
         }
 
         String email = (String) response.get("email");
+        String nickname = (provider.equals("naver"))
+                ? (String) response.get("nickname")
+                : (String) ((Map<String, Object>) response.get("profile")).get("nickname");
+
+        if (email == null) {
+            System.out.println("❌ 카카오 OAuth2 응답에서 email을 찾을 수 없습니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "카카오 계정에 이메일이 없습니다. 카카오 계정 설정에서 이메일 제공을 활성화하세요.");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.save(
                         User.builder()
                                 .email(email)
-                                .nickname("NAVER_" + email.split("@")[0])
+                                .nickname(nickname != null ? nickname : provider.toUpperCase() + "_" + email.split("@")[0])
                                 .role(User.Role.CUSTOMER)
                                 .build()
                 ));
 
         return Map.of("token", jwtUtil.generateToken(email));
     }
+
 }

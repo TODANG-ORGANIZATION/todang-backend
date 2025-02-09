@@ -31,7 +31,7 @@ public class UserController {
      */
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@RequestBody UserSignupRequest request) {
-        System.out.println("🚀 회원가입 요청 수신됨: " + request);
+        System.out.println("회원가입 요청 수신됨: " + request);
         User user = userService.signup(
                 request.getName(),
                 request.getNickname(),
@@ -78,20 +78,17 @@ public class UserController {
     public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
 
-        if (!jwtUtil.validateToken(refreshToken)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 유효하지 않습니다.");
+        // Refresh Token 검증 (유효성 + DB 비교)
+        if (!jwtUtil.validateRefreshToken(refreshToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh Token입니다.");
         }
 
+        // Refresh Token에서 이메일 추출
         String email = jwtUtil.extractEmail(refreshToken);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
-        // 저장된 리프레시 토큰과 비교
-        if (!refreshToken.equals(user.getRefreshToken())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 일치하지 않습니다.");
-        }
-
-        // 새 액세스 토큰 발급
+        // 새 Access Token 발급
         String newAccessToken = jwtUtil.generateToken(email);
 
         return ResponseEntity.ok(new RefreshTokenResponse(newAccessToken));
