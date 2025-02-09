@@ -73,6 +73,11 @@ public class SecurityConfig {
                                 "/oauth2/authorization/kakao",
                                 "/login/oauth2/code/naver",
                                 "/api/users/oauth-success", // OAuth2 성공 후 JWT 반환 허용
+                                "/error",
+                                "/websocket/chat/**", // '/**' 추가 필요
+                                "/app/**",
+                                "/topic/**",
+                                "/api/**",
                                 "/api/restaurants/**",
                                 ".api/**",
                                 "/error"
